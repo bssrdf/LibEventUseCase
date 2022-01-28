@@ -1,5 +1,12 @@
+
+ifeq ($(OS),Windows_NT)
+    uname_S := Windows
+else
+    uname_S := $(shell uname -s)
+endif
+
+
 PROGS=echo \
-      epoll \
       block_http_client \
       method \
       method2 \
@@ -13,13 +20,21 @@ PROGS=echo \
       evbuffer \
       evconn
 
+LINUX_EXE = epoll	  
+
 CLEANFILES = core core.* *.core *.o temp.* *.out typescript* \
 		*.lc *.lh *.bsdi *.sparc *.uw
 
 
-LIBEVENT_DIRECTORY = /home/zhangxiao/libevent/src/src2
+ifeq ($(uname_S),Linux)
+    LIBEVENT_DIRECTORY = /home/isodden/work/libevent
+endif
+ifeq ($(uname_S),Darwin)
+    LIBEVENT_DIRECTORY = /Users/shanshan/work/libevent
+endif
+
 LIBEVENT_INCLUDE = $(LIBEVENT_DIRECTORY)/include
-LIBEVENT_LIBRARY = $(LIBEVENT_DIRECTORY)/lib
+LIBEVENT_LIBRARY = $(LIBEVENT_DIRECTORY)/.libs
 
 SRC=${shell pwd}/src
 
@@ -28,11 +43,14 @@ MAKE_BIN_DIR := ${shell mkdir -p $(OUTPUT) }
 
 
 
-all : ${PROGS}
+all : ${PROGS} ${LINUX_EXE}
+
+allgen: ${PROGS}
 
 
 CFLAGS+=-g  -I${LIBEVENT_INCLUDE} 
-LDFLAGS+=-L${LIBEVENT_LIBRARY} -levent -lpthread -lrt
+#LDFLAGS+=-L${LIBEVENT_LIBRARY} -levent -lpthread -lrt
+LDFLAGS+=-L${LIBEVENT_LIBRARY} -levent -lpthread 
 
 echo:${SRC}/echo.o
 	@${CC} ${CFLAGS}  -o ${OUTPUT}/$@   $^  ${LDFLAGS}
